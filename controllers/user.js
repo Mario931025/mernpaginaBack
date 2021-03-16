@@ -1,4 +1,5 @@
-const bycript = require("bcrypt-nodejs")
+const bycript = require("bcrypt-nodejs");
+const jwt = require('../services/jwt')
 const User = require("../models/user");
 
 
@@ -10,7 +11,7 @@ function signUp(req,res){
 
     user.name = name;
     user.lastname = lastname;
-    user.email = email;
+    user.email = email.toLowerCase();
     user.role = "admin";
     user.active = false;
 
@@ -56,6 +57,75 @@ function signUp(req,res){
 
 }
 
+
+function signIn(req,res){
+
+   const params = req.body; // es el objeto con los datos  user: "x", email;"x"
+  const email = params.email.toLowerCase(); 
+  const password = params.password;
+
+User.findOne({email},(err,userStored)=>{
+    if(err){
+        res.status(500).send({message:"Error en el servidor"})
+    }else{
+        if(!userStored){
+            res.status(404).send({message:"Usuario no encontrado"})
+        }else{
+            bycript.compare(password,userStored.password,(err,check)=>{
+                if(err){
+                    res.status(500).send({message:"Error en el servidor"})
+                }else if(!check){
+
+                    res.status(404).send({message:"La contraseña es incorrecta"})
+                } else{
+                    if(!userStored.active){
+                        res.status(200).send({code:200,message:"El usuario no se ha activado"})
+                    }else{
+                        res.status(200).send({
+                            accessToken: jwt.createAccessToken(userStored),
+                            refreshToken: jwt.createRefreshToken(userStored)
+                        })
+                    }
+                }
+            })
+        }
+    }
+})
+
+}
+
+
+function getUsers(req,res){
+ 
+    User.find().then(users=>{
+        if(!users){
+            res.status(404).send({message:"No se ha encontrado ningun usuario"})
+        }else{
+            res.status(200).send({users})
+        }
+    })
+}
+
+
+function getUsersActive(req,res){
+
+    const query = req.query;
+
+ 
+    User.find({active : query.active}).then(users=>{
+        if(!users){
+            res.status(404).send({message:"No se ha encontrado ningun usuario"})
+        }else{
+            res.status(200).send({users})
+        }
+    })
+}
+
+
+
 module.exports ={
-    signUp
+    signUp,
+    signIn,
+    getUsers,
+    getUsersActive
 }
