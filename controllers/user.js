@@ -5,6 +5,8 @@ const bycript = require("bcrypt-nodejs");
 const jwt = require('../services/jwt')
 const User = require("../models/user");
 const { exists } = require('../models/user');
+const user = require('../models/user');
+const { use } = require('../routes/user');
 
 
 function signUp(req,res){
@@ -194,11 +196,27 @@ function getAvatar(req,res) {
 }
 
 
-function updateUser(req,res){
+async function updateUser(req,res){
 
     //body todo el contenido del user de BD
-    const userData = req.body;
+    let userData = req.body;
+    userData.email = req.body.email.toLowerCase();
     const params = req.params
+
+
+    if(userData.password) {
+     await   bycript.hash(userData.password,null,null,(err,hash)=>{
+            if(err){
+                res.status(500).send({message : "Error al encriptar la contraseña"})
+            }else{
+                userData.password= hash;
+            }
+          
+        })
+
+      
+    }
+
 
     //userData todo loq ue queremos que actualize
 
@@ -218,6 +236,89 @@ function updateUser(req,res){
 }
 
 
+function activateUser (req,res){
+    const {id} = req.params;
+    const {active} = req.body;
+
+    User.findByIdAndUpdate(id,{active},(err,userStored)=>{
+        if(err){
+            res.status(500).send({message : "Error del servidor"})
+        }else{
+            if(!userStored){
+                res.status(404).send({message : "No se ha encontrado ningun usuario"}) 
+            }else{
+                if(active === true){
+                    res.status(200).send({message : "ACTIVADO"}) 
+                }else{
+                    res.status(200).send({message : "DESACTIVADO"}) 
+                }
+            }
+        }
+    })
+}
+
+
+function deleteUser(req,res){
+    
+    const {id} = req.params;
+    
+    User.findByIdAndRemove(id,(err,userDelete)=>{
+        if(err){
+            res.status(500).send({message: "Error en el servidor"})
+        }else{
+            if(!userDelete){
+                res.status(404).send({message: "Usuario no encontrado"})
+            }else{
+                res.status(200)
+                .send({message: "Usuario borrado de la Base de Datos"})
+            }
+        }
+    })
+    
+}
+
+function  signUpAdmin(req,res){
+
+    const user = new User();
+
+    const {name,lastname, email,role,password} = req.body;
+
+    user.name = name;
+    user.lastname = lastname;
+    user.email = email.toLowerCase();
+    user.role = role;
+    user.active = true;
+
+    if(!password){
+        res.status(500).send({message : "La contraseña es obligatoria"})
+    }else{
+        bycript.hash(password,null,null,(err,hash)=>{
+            if(err){
+                res.status(500).send({message: "Error al encriptar la contraseña"})
+            }else{
+                user.password = hash;
+
+                user.save((err,userStored)=>{
+                    if(err){
+                        res.status(500).send({message : "El usuario ya existe"})
+                    }else{
+                        if(!userStored){
+                            res.status(500).send({message : "Error al crear al usuario"})
+                        }else{
+                            res.status(200).send({message: "Usuario nuevo creado"})
+                        }
+                    }
+                })
+            }
+        })
+    }
+
+}
+
+
+
+
+
 
 module.exports ={
     signUp,
@@ -226,5 +327,8 @@ module.exports ={
     getUsersActive,
     uploadAvatar,
     getAvatar,
-    updateUser
+    updateUser,
+    activateUser,
+    deleteUser,
+    signUpAdmin
 }

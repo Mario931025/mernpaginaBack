@@ -12,7 +12,8 @@ app.use(cors())
 
 //carga rutas
 const authRoutes = require('./routes/auth');
-const userRoutes = require('./routes/user')
+const userRoutes = require('./routes/user');
+const menuRoutes = require('./routes/menu');
 
 
 
@@ -36,6 +37,7 @@ app.use((req, res, next) => {
 //rutas basicas
 app.use(`/api/${API_VERSION}`, authRoutes)
 app.use(`/api/${API_VERSION}`,userRoutes);
+app.use(`/api/${API_VERSION}`,menuRoutes);
 
 
 module.exports = app; 
