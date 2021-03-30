@@ -15,6 +15,7 @@ const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/user');
 const menuRoutes = require('./routes/menu');
 const newsletterRoutes = require('./routes/newsletter')
+const courseRoutes = require("./routes/course")
 
 
 
@@ -40,6 +41,7 @@ app.use(`/api/${API_VERSION}`, authRoutes)
 app.use(`/api/${API_VERSION}`,userRoutes);
 app.use(`/api/${API_VERSION}`,menuRoutes);
 app.use(`/api/${API_VERSION}`,newsletterRoutes);
+app.use(`/api/${API_VERSION}`,courseRoutes);
 
 
 module.exports = app; 
