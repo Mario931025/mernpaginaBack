@@ -6,7 +6,7 @@ const {API_VERSION,IP_SERVER,portDb} = require("./config");
 
 mongoose.set("useFindAndModify",false)
 
-mongoose.connect(`mongodb://${IP_SERVER}:${portDb}/BUNKANDB`,{useNewUrlParser:true,useUnifiedTopology:true},
+mongoose.connect(`mongodb+srv://marioadmin:megustahalo963@bunkandb.m2qvh.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`,{useNewUrlParser:true,useUnifiedTopology:true},
 (err,res) =>{
 
     if(err) {
